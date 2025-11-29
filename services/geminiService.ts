@@ -122,8 +122,8 @@ const processApiResponse = (response: any): (Omit<Study, 'id' | 'createdAt'>)[] 
 }
 
 export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API_KEY aistudio secret not set.");
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (!apiKey) throw new Error("VITE_API_KEY secret not set in environment variables.");
   
   const ai = new GoogleGenAI({ apiKey });
 
@@ -152,8 +152,8 @@ export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id
 };
 
 export const analyzeMedicalImage = async (file: File): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API_KEY aistudio secret not set.");
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (!apiKey) throw new Error("VITE_API_KEY secret not set in environment variables.");
   
   const ai = new GoogleGenAI({ apiKey });
 
