@@ -1,0 +1,5 @@
+{
+  "name": "MetaSlim AI - 减重药物文献分析平台",
+  "description": "基于 Gemini AI 的减重药物临床数据提取与对比分析平台。支持PDF文献解析、实时数据共享与多维度可视化图表。",
+  "requestFramePermissions": []
+}
