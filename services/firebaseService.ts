@@ -14,39 +14,45 @@ import {
 } from "firebase/firestore";
 import { Study } from "../types";
 
-// --- IMPORTANT FIREBASE SETUP ---
-// The application is getting stuck because of a Firebase permissions issue.
-// To fix this, you must create and configure your own Firebase project.
-// 1. Go to https://console.firebase.google.com/ and create a new project.
-// 2. In your project, go to "Build" > "Firestore Database" and create a database.
-// 3. In the Firestore "Rules" tab, update your rules to allow public access for this demo.
-//    **This is insecure for production apps, but necessary for this public demo.**
-//    Replace existing rules with:
-//    rules_version = '2';
-//    service cloud.firestore {
-//      match /databases/{database}/documents {
-//        match /{document=**} {
-//          allow read, write: if true;
-//        }
-//      }
-//    }
-// 4. In your project settings (click the gear icon), find your Web App configuration
-//    and copy the values into the `firebaseConfig` object below.
-// 5. For deployment (e.g., on Netlify), it is highly recommended to use environment variables
-//    (e.g., import.meta.env.VITE_FIREBASE_API_KEY) instead of hardcoding these values.
+// --- Firebase 项目配置 (Netlify 部署) ---
+// 为了安全地部署到 Netlify，您的 Firebase 密钥已切换为使用环境变量。
+// 请在 Netlify 的项目设置中配置以下环境变量:
+//
+// 1. 进入 Netlify 项目 > Site configuration > Build & deploy > Environment > Environment variables.
+// 2. 点击 "New variable" 并添加以下所有密钥:
+//    - FIREBASE_API_KEY: "your-api-key"
+//    - FIREBASE_AUTH_DOMAIN: "your-auth-domain"
+//    - FIREBASE_PROJECT_ID: "your-project-id"
+//    - FIREBASE_STORAGE_BUCKET: "your-storage-bucket"
+//    - FIREBASE_MESSAGING_SENDER_ID: "your-sender-id"
+//    - FIREBASE_APP_ID: "your-app-id"
+//    - FIREBASE_MEASUREMENT_ID: "your-measurement-id" (可选)
+//
+// 确保使用您自己 Firebase 项目的真实值。
 
-// V V V V V  请将下方整个对象替换为您自己 Firebase 项目的配置  V V V V V
 const firebaseConfig = {
-  // 举例, 请务必替换:
-  apiKey: "AIzaSyBPRoW7zoNrQd8h6HhZJOT3HnaZYPEX00I",
-  authDomain: "weight-loss-30df5.firebaseapp.com",
-  projectId: "weight-loss-30df5",
-  storageBucket: "weight-loss-30df5.firebasestorage.app",
-  messagingSenderId: "987737282758",
-  appId: "1:987737282758:web:ab3b49351278e084695fc7",
-  measurementId: "G-12DB4VZZ0Q"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
-// ^ ^ ^ ^ ^  请将上方整个对象替换为您自己 Firebase 项目的配置  ^ ^ ^ ^ ^
+
+// 检查是否所有必需的环境变量都已设置
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  const errorMsg = "Firebase 配置缺失。请确保已在 Netlify 的环境变量设置中配置所有必需的 FIREBASE_* 密钥。";
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    rootElement.innerHTML = `<div style="padding: 2rem; text-align: center; background-color: #FFFBEB; border: 1px solid #FEE2B3; border-radius: 0.5rem; margin: 2rem; color: #92400E;">
+      <h2 style="font-size: 1.25rem; font-weight: bold;">配置错误</h2>
+      <p style="margin-top: 0.5rem;">${errorMsg}</p>
+      <p style="margin-top: 1rem; font-size: 0.875rem; color: #B45309;">请参考 <code>services/firebaseService.ts</code> 文件中的说明进行配置。</p>
+    </div>`;
+  }
+  throw new Error(errorMsg);
+}
 
 
 const app = initializeApp(firebaseConfig);

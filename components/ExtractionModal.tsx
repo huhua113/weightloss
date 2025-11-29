@@ -33,9 +33,14 @@ const ExtractionModal: React.FC<Props> = ({ isOpen, onClose, studies }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Detect mobile device on component mount
+    const checkIsMobile = () => /Mobi|Android/i.test(navigator.userAgent);
+    setIsMobile(checkIsMobile());
+
     // Reset state on modal close
     if (!isOpen) {
       setTimeout(() => {
@@ -184,12 +189,21 @@ const ExtractionModal: React.FC<Props> = ({ isOpen, onClose, studies }) => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragging ? 'border-primary bg-primary/10' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragging && !isMobile ? 'border-primary bg-primary/10' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-primary mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <span className="text-primary font-medium">点击或拖拽多个 PDF 或图片文件</span>
+              {isMobile ? (
+                 <div>
+                    <span className="text-primary font-medium">点击选择文件</span>
+                    <p className="text-xs text-slate-500 mt-2 px-4">
+                        提示：请先将微信等应用中的文件保存到手机，再从这里选择。
+                    </p>
+                </div>
+              ) : (
+                <span className="text-primary font-medium">点击或拖拽多个 PDF 或图片文件</span>
+              )}
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" multiple />
             </div>
           ) : (
