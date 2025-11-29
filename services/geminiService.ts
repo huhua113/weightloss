@@ -122,8 +122,8 @@ const processApiResponse = (response: any): (Omit<Study, 'id' | 'createdAt'>)[] 
 }
 
 export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
-  const apiKey = import.meta.env.VITE_API_KEY;
-  if (!apiKey) throw new Error("VITE_API_KEY secret not set in environment variables.");
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) throw new Error("Gemini API Key (API_KEY) 缺失。请确保已在 Netlify 的环境变量设置中配置了此密钥（注意：不需要'VITE_'前缀）。");
   
   const ai = new GoogleGenAI({ apiKey });
 
@@ -152,8 +152,8 @@ export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id
 };
 
 export const analyzeMedicalImage = async (file: File): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
-  const apiKey = import.meta.env.VITE_API_KEY;
-  if (!apiKey) throw new Error("VITE_API_KEY secret not set in environment variables.");
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) throw new Error("Gemini API Key (API_KEY) 缺失。请确保已在 Netlify 的环境变量设置中配置了此密钥（注意：不需要'VITE_'前缀）。");
   
   const ai = new GoogleGenAI({ apiKey });
 
@@ -168,8 +168,7 @@ export const analyzeMedicalImage = async (file: File): Promise<(Omit<Study, 'id'
 
   try {
     const response = await ai.models.generateContent({
-      // FIX: Updated model to `gemini-2.5-flash` for multimodal input, aligning with guidelines.
-      model: "gemini-2.5-flash", // Use a vision model
+      model: "gemini-2.5-flash",
       contents: { parts: [imagePart, { text: extractionPromptText }] },
       config: {
         responseMimeType: "application/json",

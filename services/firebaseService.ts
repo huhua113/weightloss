@@ -15,34 +15,32 @@ import {
 import { Study } from "../types";
 
 // --- Firebase 项目配置 (Netlify 部署) ---
-// 为了安全地部署到 Netlify，您的 Firebase 密钥已切换为使用 Vite 的环境变量。
-// **重要操作**: 请在 Netlify 的项目设置中，为您所有的 Firebase 环境变量名称添加 "VITE_" 前缀。
+// 为了安全地部署到 Netlify，您的 Firebase 密钥已切换为使用标准环境变量。
+// **重要操作**: 请在 Netlify 的项目设置中，确保您的环境变量没有 "VITE_" 前缀。
 //
 // 1. 进入 Netlify 项目 > Site configuration > Build & deploy > Environment > Environment variables.
-// 2. 将您现有的 Firebase 环境变量更新为以下名称:
-//    - VITE_FIREBASE_API_KEY: "your-api-key"
-//    - VITE_FIREBASE_AUTH_DOMAIN: "your-auth-domain"
-//    - VITE_FIREBASE_PROJECT_ID: "your-project-id"
-//    - VITE_FIREBASE_STORAGE_BUCKET: "your-storage-bucket"
-//    - VITE_FIREBASE_MESSAGING_SENDER_ID: "your-sender-id"
-//    - VITE_FIREBASE_APP_ID: "your-app-id"
-//    - VITE_FIREBASE_MEASUREMENT_ID: "your-measurement-id" (可选)
-//
-// 这是 Vite 的安全机制，只有以 "VITE_" 开头的变量才会被暴露给前端代码。
+// 2. 确认或添加以下变量 (注意: 名称不含 VITE_ 前缀):
+//    - FIREBASE_API_KEY: "your-api-key"
+//    - FIREBASE_AUTH_DOMAIN: "your-auth-domain"
+//    - FIREBASE_PROJECT_ID: "your-project-id"
+//    - FIREBASE_STORAGE_BUCKET: "your-storage-bucket"
+//    - FIREBASE_MESSAGING_SENDER_ID: "your-sender-id"
+//    - FIREBASE_APP_ID: "your-app-id"
+//    - FIREBASE_MEASUREMENT_ID: "your-measurement-id" (可选)
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
 
 // 检查是否所有必需的环境变量都已设置
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  const errorMsg = "Firebase 配置缺失。请确保已在 Netlify 的环境变量设置中配置所有必需的 VITE_FIREBASE_* 密钥。";
+  const errorMsg = "Firebase 配置缺失。请确保已在 Netlify 的环境变量设置中配置所有必需的 FIREBASE_* 密钥（注意：不需要'VITE_'前缀）。";
   const rootElement = document.getElementById('root');
   if (rootElement) {
     rootElement.innerHTML = `<div style="padding: 2rem; text-align: center; background-color: #FFFBEB; border: 1px solid #FEE2B3; border-radius: 0.5rem; margin: 2rem; color: #92400E;">
