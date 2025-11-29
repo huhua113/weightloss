@@ -120,19 +120,40 @@ const EditStudyModal: React.FC<Props> = ({ isOpen, onClose, study }) => {
 
               <div className="col-span-1 md:col-span-2 mt-2">
                 <h3 className="text-base font-semibold text-slate-800 border-b pb-2 mb-3">剂量详情</h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {formData.doses.map((dose, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-x-3 items-center">
-                        <div className="col-span-12 sm:col-span-3"><input type="text" name="dose" placeholder="剂量 (例如: 2.4mg)" value={dose.dose} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
-                        <div className="col-span-6 sm:col-span-2 relative"><label className="sm:hidden text-xs text-slate-500">减重%</label><input type="number" name="weightLossPercent" placeholder="减重%" step="0.1" value={dose.weightLossPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
-                        <div className="col-span-6 sm:col-span-2 relative"><label className="sm:hidden text-xs text-slate-500">恶心%</label><input type="number" name="nauseaPercent" placeholder="恶心%" step="0.1" value={dose.nauseaPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
-                        <div className="col-span-6 sm:col-span-2 relative"><label className="sm:hidden text-xs text-slate-500">呕吐%</label><input type="number" name="vomitingPercent" placeholder="呕吐%" step="0.1" value={dose.vomitingPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
-                        <div className="col-span-6 sm:col-span-2"></div>
-                        <div className="col-span-12 sm:col-span-1 flex justify-end"><button type="button" onClick={() => removeDose(index)} className="text-red-500 hover:text-red-700 p-2 rounded-full flex items-center justify-center w-6 h-6 leading-none">×</button></div>
+                    <div key={index} className="relative p-4 border border-slate-200 rounded-lg bg-slate-50/50">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">剂量</label>
+                          <input type="text" name="dose" placeholder="例如: 2.4mg" value={dose.dose} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} required/>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">减重 (%)</label>
+                          <input type="number" name="weightLossPercent" placeholder="减重百分比" step="0.1" value={dose.weightLossPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">恶心 (%)</label>
+                          <input type="number" name="nauseaPercent" placeholder="恶心百分比" step="0.1" value={dose.nauseaPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">呕吐 (%)</label>
+                          <input type="number" name="vomitingPercent" placeholder="呕吐百分比" step="0.1" value={dose.vomitingPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">腹泻 (%)</label>
+                          <input type="number" name="diarrheaPercent" placeholder="腹泻百分比" step="0.1" value={dose.diarrheaPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">便秘 (%)</label>
+                          <input type="number" name="constipationPercent" placeholder="便秘百分比" step="0.1" value={dose.constipationPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} />
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => removeDose(index)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 p-1 rounded-full flex items-center justify-center w-6 h-6 leading-none bg-red-100/50 hover:bg-red-100 transition-colors">×</button>
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={addDose} className="mt-3 text-sm font-medium text-primary hover:text-primary/80">+ 添加剂量</button>
+                <button type="button" onClick={addDose} className="mt-4 text-sm font-medium text-primary hover:text-primary/80">+ 添加剂量组</button>
               </div>
             </div>
           </div>
