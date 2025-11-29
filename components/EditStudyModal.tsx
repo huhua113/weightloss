@@ -9,7 +9,6 @@ interface Props {
 }
 
 const EditStudyModal: React.FC<Props> = ({ isOpen, onClose, study }) => {
-  // FIX: Corrected useState generic type syntax and changed to use the full Study type for better type safety. This resolves all reported errors on this line.
   const [formData, setFormData] = useState<Study | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -23,7 +22,7 @@ const EditStudyModal: React.FC<Props> = ({ isOpen, onClose, study }) => {
 
   if (!isOpen || !formData) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let finalValue: any = value;
     if (type === 'checkbox') {
@@ -61,11 +60,8 @@ const EditStudyModal: React.FC<Props> = ({ isOpen, onClose, study }) => {
     if (!study || !formData) return;
     setIsSaving(true);
     try {
-      // FIX: Removed 'as any' type assertion due to corrected formData type.
-      // Remove id and createdAt if they are present in formData
       const { id, createdAt, ...dataToUpdate } = formData;
       
-      // Ensure numeric fields are numbers and capitalize drug name
       const cleanedData = {
           ...dataToUpdate,
           drugName: dataToUpdate.drugName.charAt(0).toUpperCase() + dataToUpdate.drugName.slice(1).toLowerCase(),
@@ -102,12 +98,20 @@ const EditStudyModal: React.FC<Props> = ({ isOpen, onClose, study }) => {
         <form onSubmit={handleSubmit} className="flex-grow contents">
           <div className="p-6 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-              <div><label className={formLabelStyle}>药物名称</label><input type="text" name="drugName" value={formData.drugName} onChange={handleChange} className={formInputStyle} required /></div>
-              <div><label className={formLabelStyle}>公司</label><input type="text" name="company" value={formData.company} onChange={handleChange} className={formInputStyle} /></div>
-              <div><label className={formLabelStyle}>药物种类</label><input type="text" name="drugClass" value={formData.drugClass} onChange={handleChange} className={formInputStyle} /></div>
-              <div><label className={formLabelStyle}>试验名称</label><input type="text" name="trialName" value={formData.trialName} onChange={handleChange} className={formInputStyle} required /></div>
-              <div><label className={formLabelStyle}>分期</label><input type="text" name="phase" value={formData.phase} onChange={handleChange} className={formInputStyle} /></div>
-              <div><label className={formLabelStyle}>周期 (周)</label><input type="number" name="durationWeeks" value={formData.durationWeeks} onChange={handleChange} className={formInputStyle} /></div>
+              <div><label className={formLabelStyle}>药物名称</label><input type="text" name="drugName" value={formData.drugName} onChange={handleChange} className={formInputStyle} required placeholder="例如: Semaglutide" /></div>
+              <div><label className={formLabelStyle}>公司</label><input type="text" name="company" value={formData.company} onChange={handleChange} className={formInputStyle} placeholder="例如: Novo Nordisk" /></div>
+              <div><label className={formLabelStyle}>药物种类</label><input type="text" name="drugClass" value={formData.drugClass} onChange={handleChange} className={formInputStyle} placeholder="例如: GLP-1 RA" /></div>
+              <div><label className={formLabelStyle}>试验名称</label><input type="text" name="trialName" value={formData.trialName} onChange={handleChange} className={formInputStyle} required placeholder="例如: STEP-1" /></div>
+              <div>
+                <label htmlFor="edit_phase" className={formLabelStyle}>分期</label>
+                <select id="edit_phase" name="phase" value={formData.phase} onChange={handleChange} className={formInputStyle}>
+                  <option value="">请选择分期</option>
+                  <option value="Phase 1">Phase 1</option>
+                  <option value="Phase 2">Phase 2</option>
+                  <option value="Phase 3">Phase 3</option>
+                </select>
+              </div>
+              <div><label className={formLabelStyle}>周期 (周)</label><input type="number" name="durationWeeks" value={formData.durationWeeks} onChange={handleChange} className={formInputStyle} placeholder="例如: 68" /></div>
               
               <div className="col-span-1 md:col-span-2 flex items-center gap-6 mt-2">
                  <div className="flex items-center gap-2"><input type="checkbox" id="hasT2D" name="hasT2D" checked={formData.hasT2D} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" /><label htmlFor="hasT2D" className="text-sm font-medium text-slate-700">包含T2D患者</label></div>
@@ -119,7 +123,7 @@ const EditStudyModal: React.FC<Props> = ({ isOpen, onClose, study }) => {
                 <div className="space-y-3">
                   {formData.doses.map((dose, index) => (
                     <div key={index} className="grid grid-cols-12 gap-x-3 items-center">
-                        <div className="col-span-12 sm:col-span-3"><input type="text" name="dose" placeholder="剂量" value={dose.dose} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
+                        <div className="col-span-12 sm:col-span-3"><input type="text" name="dose" placeholder="剂量 (例如: 2.4mg)" value={dose.dose} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
                         <div className="col-span-6 sm:col-span-2 relative"><label className="sm:hidden text-xs text-slate-500">减重%</label><input type="number" name="weightLossPercent" placeholder="减重%" step="0.1" value={dose.weightLossPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
                         <div className="col-span-6 sm:col-span-2 relative"><label className="sm:hidden text-xs text-slate-500">恶心%</label><input type="number" name="nauseaPercent" placeholder="恶心%" step="0.1" value={dose.nauseaPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
                         <div className="col-span-6 sm:col-span-2 relative"><label className="sm:hidden text-xs text-slate-500">呕吐%</label><input type="number" name="vomitingPercent" placeholder="呕吐%" step="0.1" value={dose.vomitingPercent} onChange={e => handleDoseChange(index, e)} className={formInputStyle + " mt-0"} /></div>
