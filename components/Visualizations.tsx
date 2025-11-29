@@ -23,7 +23,7 @@ const getSafetyData = (studies: Study[]) => {
         diarrhea: dose.diarrheaPercent,
         constipation: dose.constipationPercent,
         hasT2D: study.hasT2D,
-        fill: study.hasT2D ? '#F8763F' : '#2B98BA' // Orange for T2D, Blue for non-T2D
+        fill: study.hasT2D ? '#3B82F6' : '#14B8A6' // Blue for T2D, Teal for non-T2D
       }))
   );
 };
@@ -98,7 +98,7 @@ export const SafetyAnalysisChart: React.FC<Props> = ({ studies }) => {
           ))}
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="90%">
+      <ResponsiveContainer width="100%" height="80%">
         <ScatterChart margin={{ top: 20, right: 40, left: 5, bottom: 30 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -137,15 +137,15 @@ export const DurationEfficacyScatterChart: React.FC<Props> = ({ studies }) => {
     <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg h-96">
       <h3 className="text-lg font-bold text-slate-900 mb-2">周期与减重幅度分析</h3>
       <p className="text-xs text-slate-500 mb-4">X轴: 周期 (周) | Y轴: 减重 (%)</p>
-      <ResponsiveContainer width="100%" height="90%">
+      <ResponsiveContainer width="100%" height="80%">
         <ScatterChart margin={{ top: 20, right: 40, left: 5, bottom: 30 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis type="number" dataKey="x" name="研究周期" unit="周" domain={['dataMin - 4', 'dataMax + 4']} label={{ value: '周期 (周)', position: 'bottom', offset: 0, style: { fontSize: 12 } }} tick={{ fontSize: 10 }} />
           <YAxis type="number" dataKey="y" name="减重幅度" unit="%" label={{ value: '减重 (%)', position: 'insideTopLeft', dy: -10, style: { fontSize: 12 } }} tick={{ fontSize: 10 }} />
           <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
           <Legend wrapperStyle={{ display: 'none' }} />
-          <Scatter name="非糖尿病人群" data={nonT2dData} fill="#2B98BA" fillOpacity={0.7} />
-          <Scatter name="T2D 人群" data={t2dData} fill="#F8763F" fillOpacity={0.7} />
+          <Scatter name="非糖尿病人群" data={nonT2dData} fill="#14B8A6" fillOpacity={0.7} />
+          <Scatter name="T2D 人群" data={t2dData} fill="#3B82F6" fillOpacity={0.7} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

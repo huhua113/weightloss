@@ -57,6 +57,13 @@ const ComparisonCard: React.FC<{ study: Study }> = ({ study }) => {
         <p className="text-sm text-slate-500">{study.company}</p>
       </div>
       <div className="p-4 space-y-4">
+        {study.summary && (
+          <div>
+            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">关键结论</h4>
+            <p className="mt-1 text-sm text-slate-600 bg-slate-50 p-2 rounded-md">{study.summary}</p>
+          </div>
+        )}
+
         <div>
           <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">试验设计</h4>
           <ul className="mt-2 text-sm space-y-1">
@@ -65,7 +72,7 @@ const ComparisonCard: React.FC<{ study: Study }> = ({ study }) => {
             <li className="flex justify-between"><span>分期:</span> <span className="font-medium text-slate-700">{study.phase}</span></li>
             <li className="flex justify-between"><span>周期:</span> <span className="font-medium text-slate-700">{study.durationWeeks} 周</span></li>
             <li className="flex justify-between"><span>入组人群:</span> 
-              <span className={`font-medium ${study.hasT2D ? 'text-orange-600' : 'text-blue-600'}`}>
+              <span className={`font-medium ${study.hasT2D ? 'text-orange' : 'text-primary'}`}>
                 {study.hasT2D ? '包含 T2D' : '不含 T2D'}
               </span>
             </li>

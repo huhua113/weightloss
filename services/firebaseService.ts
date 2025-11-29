@@ -9,7 +9,8 @@ import {
   query, 
   orderBy,
   getDocs,
-  writeBatch
+  writeBatch,
+  updateDoc
 } from "firebase/firestore";
 import { Study } from "../types";
 
@@ -60,6 +61,16 @@ export const addStudy = async (studyData: Omit<Study, 'id' | 'createdAt'>) => {
     });
   } catch (e) {
     console.error("Error adding document: ", e);
+    throw e;
+  }
+};
+
+export const updateStudy = async (id: string, studyData: Partial<Omit<Study, 'id'>>) => {
+  try {
+    const studyRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(studyRef, studyData);
+  } catch (e) {
+    console.error("Error updating document: ", e);
     throw e;
   }
 };
@@ -115,7 +126,12 @@ export const subscribeToStudies = (callback: (studies: Study[]) => void) => {
   return onSnapshot(q, (snapshot) => {
     const studies: Study[] = [];
     snapshot.forEach((doc) => {
-      studies.push({ id: doc.id, ...doc.data() } as Study);
+      const data = doc.data();
+      // Standardize drug names to be capitalized
+      if (data.drugName && typeof data.drugName === 'string') {
+          data.drugName = data.drugName.charAt(0).toUpperCase() + data.drugName.slice(1).toLowerCase();
+      }
+      studies.push({ id: doc.id, ...data } as Study);
     });
     callback(studies);
   });

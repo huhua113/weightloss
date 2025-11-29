@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { extractTextFromPDF, analyzeMedicalText } from '../services/geminiService';
+import { extractTextFromPDF, analyzeMedicalText, analyzeMedicalImage } from '../services/geminiService';
 import { addStudy } from '../services/firebaseService';
 import { Study } from '../types';
 
@@ -61,14 +61,22 @@ const ExtractionModal: React.FC<Props> = ({ isOpen, onClose, studies }) => {
       };
 
       try {
-        updateStatus('processing', '正在解析 PDF...');
-        const text = await extractTextFromPDF(file);
+        let studiesData: (Omit<Study, 'id' | 'createdAt'>)[];
+        if (file.type === 'application/pdf') {
+          updateStatus('processing', '正在解析 PDF...');
+          const text = await extractTextFromPDF(file);
+          updateStatus('processing', 'AI 正在提取数据...');
+          studiesData = await analyzeMedicalText(text);
+        } else if (file.type.startsWith('image/')) {
+          updateStatus('processing', 'AI 正在分析图片...');
+          studiesData = await analyzeMedicalImage(file);
+        } else {
+          throw new Error("不支持的文件格式");
+        }
 
-        updateStatus('processing', 'AI 正在提取数据...');
-        const studiesData = await analyzeMedicalText(text);
 
         if (!studiesData || studiesData.length === 0) {
-          throw new Error("AI 未能从文献中提取任何队列");
+          throw new Error("AI 未能从文件中提取任何队列");
         }
 
         updateStatus('processing', `发现 ${studiesData.length} 个队列，正在筛选并保存...`);
@@ -148,8 +156,14 @@ const ExtractionModal: React.FC<Props> = ({ isOpen, onClose, studies }) => {
     setIsDragging(false);
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      const pdfFiles = Array.from(files).filter(f => f.type === 'application/pdf');
-      handleFilesSelected(pdfFiles as any);
+      const acceptedFiles = Array.from(files).filter(f => 
+        f.type === 'application/pdf' || f.type.startsWith('image/')
+      );
+      if (acceptedFiles.length > 0) {
+          handleFilesSelected(acceptedFiles as any);
+      } else {
+        alert("请拖拽 PDF 或图片文件。");
+      }
     }
   };
 
@@ -159,9 +173,9 @@ const ExtractionModal: React.FC<Props> = ({ isOpen, onClose, studies }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-2">上传文献提取数据</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">AI 提取数据</h2>
           <p className="text-slate-500 text-sm mb-6">
-            支持批量上传 PDF 文献。AI 将自动分析并跳过数据不完整的文献。
+            支持批量上传 PDF 或图片。AI 将自动分析并跳过数据不完整的文献。
           </p>
 
           {uploadProgress.length === 0 ? (
@@ -175,8 +189,8 @@ const ExtractionModal: React.FC<Props> = ({ isOpen, onClose, studies }) => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-primary mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <span className="text-primary font-medium">点击或拖拽多个 PDF 文件</span>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".pdf" className="hidden" multiple />
+              <span className="text-primary font-medium">点击或拖拽多个 PDF 或图片文件</span>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" multiple />
             </div>
           ) : (
             <div className="max-h-64 overflow-y-auto space-y-2 pr-2">

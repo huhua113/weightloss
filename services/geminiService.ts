@@ -1,6 +1,22 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Study } from "../types";
 
+// Helper to convert a file to a base64 string
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      // result is "data:image/jpeg;base64,...."
+      // we need to remove the prefix "data:...,"
+      const base64String = (reader.result as string).split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = error => reject(error);
+  });
+};
+
+
 // PDF.js is loaded from a CDN, so we can use it directly.
 export const extractTextFromPDF = async (file: File): Promise<string> => {
   const arrayBuffer = await file.arrayBuffer();
@@ -64,17 +80,8 @@ const studySchema = {
   required: ['studies'],
 };
 
-
-export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("API_KEY aistudio secret not set.");
-  }
-  
-  const ai = new GoogleGenAI({ apiKey });
-
-  const userPrompt = `你是一位专业的医学文献分析助手。
-你的任务是从提供的临床试验文本中，提取关于减重药物的关键信息。
+const extractionPromptText = `你是一位专业的医学文献分析助手。
+你的任务是从提供的临床试验文本、截图或图片中，提取关于减重药物的关键信息。
 请根据提供的JSON schema进行分析并返回结果。
 
 **重要规则**:
@@ -88,10 +95,39 @@ export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id
 3. **疗效数据**: 每个剂量组的体重下降百分比。
 4. **安全性数据**: 每个剂量组的恶心、呕吐、腹泻和便秘发生率百分比。
 
-如果某个数值未在文献中报告，请将数值设为 0，字符串设为空字符串 ""。确保所有数字字段都是数字类型，而不是字符串。
+如果某个数值未在文献中报告，请将数值设为 0，字符串设为空字符串 ""。确保所有数字字段都是数字类型，而不是字符串。`;
 
-文献内容:
-${text.substring(0, 30000)}`;
+
+const processApiResponse = (response: any): (Omit<Study, 'id' | 'createdAt'>)[] => {
+    const jsonText = response.text;
+    if (!jsonText) {
+      throw new Error("API returned an empty response.");
+    }
+
+    const data = JSON.parse(jsonText);
+    
+    if (!data.studies || !Array.isArray(data.studies)) {
+        throw new Error("API response did not contain a valid 'studies' array.");
+    }
+    
+    // Capitalize drug names for consistency
+    const capitalizedStudies = data.studies.map((study: any) => {
+        if (study.drugName && typeof study.drugName === 'string') {
+            study.drugName = study.drugName.charAt(0).toUpperCase() + study.drugName.slice(1).toLowerCase();
+        }
+        return study;
+    });
+
+    return capitalizedStudies as (Omit<Study, 'id' | 'createdAt'>)[];
+}
+
+export const analyzeMedicalText = async (text: string): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) throw new Error("API_KEY aistudio secret not set.");
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const userPrompt = `${extractionPromptText}\n\n文献内容:\n${text.substring(0, 30000)}`;
   
   try {
     const response = await ai.models.generateContent({
@@ -104,24 +140,51 @@ ${text.substring(0, 30000)}`;
       },
     });
 
-    const jsonText = response.text;
-    if (!jsonText) {
-      throw new Error("API returned an empty response.");
-    }
-
-    const data = JSON.parse(jsonText);
-    
-    if (!data.studies || !Array.isArray(data.studies)) {
-        throw new Error("API response did not contain a valid 'studies' array.");
-    }
-
-    return data.studies as (Omit<Study, 'id' | 'createdAt'>)[];
+    return processApiResponse(response);
 
   } catch (error) {
-    console.error("Gemini Extraction Error:", error);
+    console.error("Gemini Text Extraction Error:", error);
     if (error instanceof Error) {
         throw new Error(`Gemini API call failed: ${error.message}`);
     }
     throw new Error("无法从文献中提取有效信息，请检查文件内容或API密钥。");
+  }
+};
+
+export const analyzeMedicalImage = async (file: File): Promise<(Omit<Study, 'id' | 'createdAt'>)[]> => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) throw new Error("API_KEY aistudio secret not set.");
+  
+  const ai = new GoogleGenAI({ apiKey });
+
+  const base64Data = await fileToBase64(file);
+
+  const imagePart = {
+    inlineData: {
+      mimeType: file.type,
+      data: base64Data,
+    },
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      // FIX: Updated model to `gemini-2.5-flash` for multimodal input, aligning with guidelines.
+      model: "gemini-2.5-flash", // Use a vision model
+      contents: { parts: [imagePart, { text: extractionPromptText }] },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: studySchema,
+        temperature: 0.1,
+      },
+    });
+
+    return processApiResponse(response);
+
+  } catch (error) {
+    console.error("Gemini Image Extraction Error:", error);
+    if (error instanceof Error) {
+        throw new Error(`Gemini API call failed: ${error.message}`);
+    }
+    throw new Error("无法从图片中提取有效信息，请检查图片内容或API密钥。");
   }
 };
